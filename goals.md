@@ -2,20 +2,20 @@
 
 ## Minimum
 
-* build a no-source RPM for AWS CLI v2
-* support EL7 (RHEL, Centos)
-* test it properly, so we get notified when an upstream change breaks an assumption
+- [ ] build a no-source RPM for AWS CLI v2
+- [ ] support EL7 (RHEL, Centos)
+- [ ] test it properly, so we get notified when an upstream change breaks an assumption
 
 ## Stretch
 
-* support AMZN2, EL8, ___?
-* conflict with RPM for AWS CLI v1
-* track versions for official releases of AWS CLI v2
-* publish RPM to releases on github project
-* use github actions so this is all automated
-* automate trigger (releases? weekly?) for new versions
-* avoid having to update this repo to handle new versions
-* properly check PGP signature
+- [ ] support AMZN2, EL8, ___?
+- [ ] conflict with RPM for AWS CLI v1
+- [ ] track versions for official releases of AWS CLI v2
+- [ ] publish RPM to releases on github project
+- [ ] use github actions so this is all automated
+- [ ] automate trigger (releases? weekly?) for new versions
+- [ ] avoid having to update this repo to handle new versions
+- [ ] properly check PGP signature
 
 
 # References
