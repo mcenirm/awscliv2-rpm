@@ -1,7 +1,7 @@
 name: check for new installer
 on:
   schedule:
-    - cron: "50 21 * * 6"
+    - cron: "50 23 * * 6"
 jobs:
   check_for_new_installer:
     runs-on: ubuntu-latest
@@ -11,18 +11,15 @@ jobs:
     - uses: actions/checkout@v2
     - name: download installer
       run: curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
-    - shell: bash
+    - name: update installer checksum
       run: |
-        set -x
-        #
-        : skip rest if installer has not changed
-        if sha256sum -c "$INSTALLER_ZIP".sha256 ; then exit 0 ; fi
-        #
-        : update checksum
         sha256sum "$INSTALLER_ZIP" > "$INSTALLER_ZIP".sha256
-        #
-        : extract version
-        unzip -q "$INSTALLER_ZIP"
+        git add "$INSTALLER_ZIP".sha256
+    - name: unzip installer
+      run: unzip -q "$INSTALLER_ZIP"
+    - name: extract version
+      shell: bash
+      run: |
         git rm -q -f --ignore-unmatch -- *.version
         versions=$(aws/dist/aws --version)
         printf '= %q\n' $versions
@@ -40,10 +37,15 @@ jobs:
             git add "$product".version
           fi
         done
-        #
-        : push updated installer details to repo
+    - name: check for changes to commit
+      id: check
+      continue-on-error: true
+      run: git diff --cached --name-status --exit-code
+    - name: push updated installer details
+      if: steps.check.outcome == "failure"
+      shell: bash
+      run: |
         git config user.name "$GITHUB_ACTOR"
         git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
-        git add *.sha256 *.version
         git commit --file aws-cli.version
         git push
