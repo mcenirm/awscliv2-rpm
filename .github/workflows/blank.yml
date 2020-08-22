@@ -18,7 +18,7 @@ jobs:
         curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
         #
         : skip rest if installer has not changed
-        sha256sum -c "$INSTALLER_ZIP".sha256 && exit 0
+        if sha256sum -c "$INSTALLER_ZIP".sha256 ; then exit 0 ; fi
         #
         : update checksum
         sha256sum "$INSTALLER_ZIP" > "$INSTALLER_ZIP".sha256
