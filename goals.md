@@ -2,8 +2,8 @@
 
 ## Minimum
 
-- [ ] build a no-source RPM for AWS CLI v2
-- [ ] support EL7 (RHEL, Centos)
+- [X] build a no-source RPM for AWS CLI v2
+- [X] support EL7 (RHEL, Centos)
 - [ ] test it properly, so we get notified when an upstream change breaks an assumption
 - [ ] document procedure for building real RPM from nosrc RPM (download and rpmbuild)
 
