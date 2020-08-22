@@ -1,7 +1,7 @@
 name: check for new installer
 on:
   schedule:
-    - cron: "35 21 * * 6"
+    - cron: "50 21 * * 6"
 jobs:
   check_for_new_installer:
     runs-on: ubuntu-latest
@@ -9,12 +9,11 @@ jobs:
       INSTALLER_ZIP: awscli-exe-linux-x86_64.zip
     steps:
     - uses: actions/checkout@v2
+    - name: download installer
+      run: curl -D debug.headers.txt -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
     - shell: bash
       run: |
         set -x
-        #
-        : download installer
-        curl -D debug.headers.txt -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
         #
         : skip rest if installer has not changed
         if sha256sum -c "$INSTALLER_ZIP".sha256 ; then exit 0 ; fi
