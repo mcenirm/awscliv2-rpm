@@ -1,0 +1,12 @@
+version: "3"
+services:
+  builder:
+    build: ./builder
+    volumes:
+      - .:/work
+    working_dir: /work
+  tester:
+    image: centos:7
+    volumes:
+      - .:/work
+    working_dir: /work

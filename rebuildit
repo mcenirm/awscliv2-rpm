@@ -1,0 +1,16 @@
+#!/bin/bash
+set -euo pipefail
+
+sha256sum -c awscli-exe-linux-x86_64.zip.sha256
+
+rpmlint awscliv2.spec
+
+# create nosrc rpm
+rsync -ai awscli-exe-linux-x86_64.zip $HOME/rpmbuild/SOURCES/
+rpmbuild -bs awscliv2.spec
+rsync -ai $HOME/rpmbuild/SRPMS/ ./SRPMS/
+
+# create binary rpm
+rpm -Uvh ./SRPMS/awscliv2-2.0.42-1.el7.nosrc.rpm
+rpmbuild -ba ~/rpmbuild/SPECS/awscliv2.spec
+rsync -ai $HOME/rpmbuild/RPMS/ ./RPMS/
