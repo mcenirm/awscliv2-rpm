@@ -1,22 +1,20 @@
-name: CI
+name: check for new installer
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  schedule:
+    - cron: "35 21 * * 6"
 jobs:
-  checkinstaller:
+  check_for_new_installer:
     runs-on: ubuntu-latest
+    env:
+      INSTALLER_ZIP: awscli-exe-linux-x86_64.zip
     steps:
     - uses: actions/checkout@v2
     - shell: bash
-      env:
-        INSTALLER_ZIP: awscli-exe-linux-x86_64.zip
       run: |
         set -x
         #
         : download installer
-        curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
+        curl -D debug.headers.txt -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
         #
         : skip rest if installer has not changed
         if sha256sum -c "$INSTALLER_ZIP".sha256 ; then exit 0 ; fi
@@ -26,13 +24,27 @@ jobs:
         #
         : extract version
         unzip -q "$INSTALLER_ZIP"
-        aws/dist/aws --version | tee "$INSTALLER_ZIP".version
-        version=$(gawk -v RS=' |\n' -v FS=/ '$1 == "aws-cli" {print $2}' "$INSTALLER_ZIP".version)
-        printf 'version: %q\n' "$version"
+        git rm -q -f --ignore-unmatch -- *.version
+        versions=$(aws/dist/aws --version)
+        printf '= %q\n' $versions
+        for pv in $versions
+        do
+          product=$(echo "${pv%%/*}" | tr '[:upper:]' '[:lower:]')
+          version=${pv#*/}
+          case "$product" in
+            aws-cli|python)  keep=yes ;;
+            *)               keep=no  ;;
+          esac
+          if [ $keep = yes ]
+          then
+            printf '%s\n' "$version" > "$product".version
+            git add "$product".version
+          fi
+        done
         #
         : push updated installer details to repo
         git config user.name "$GITHUB_ACTOR"
-        git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW}@github.io"
-        git add "$INSTALLER_ZIP".*
-        git commit -m "version $version is now available"
+        git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
+        git add *.sha256 *.version debug.*.txt
+        git commit --file aws-cli.version
         git push
