@@ -13,6 +13,7 @@ jobs:
       env:
         INSTALLER_ZIP: awscli-exe-linux-x86_64.zip
       run: |
+        set -x
         #
         : download installer
         curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
@@ -24,9 +25,9 @@ jobs:
         sha256sum "$INSTALLER_ZIP" > "$INSTALLER_ZIP".sha256
         #
         : extract version
-        unzip "$INSTALLER_ZIP"
+        unzip -q "$INSTALLER_ZIP"
         aws/dist/aws --version | tee "$INSTALLER_ZIP".version
-        version=$(gawk -v RS=' |\n' -v FS=/ '$1 == "aws-cli" {print $2}' "$INSTALLER_ZIP")
+        version=$(gawk -v RS=' |\n' -v FS=/ '$1 == "aws-cli" {print $2}' "$INSTALLER_ZIP".version)
         printf 'version: %q\n' "$version"
         #
         : push updated installer details to repo
