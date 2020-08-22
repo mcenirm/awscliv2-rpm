@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: download installer
-      run: curl -D debug.headers.txt -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
+      run: curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
     - shell: bash
       run: |
         set -x
@@ -44,6 +44,6 @@ jobs:
         : push updated installer details to repo
         git config user.name "$GITHUB_ACTOR"
         git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
-        git add *.sha256 *.version debug.*.txt
+        git add *.sha256 *.version
         git commit --file aws-cli.version
         git push
