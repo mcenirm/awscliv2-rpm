@@ -9,9 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: curl -sLRO https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-    - run: sha256sum awscli-exe-linux-x86_64.zip > example.sha256
-    - run: unzip awscli-exe-linux-x86_64.zip
-    - run: aws/dist/aws --version > example.version
-    - run: head example.*
-    - run: ls -alF
+    - shell: bash
+      env:
+        INSTALLER_ZIP: awscli-exe-linux-x86_64.zip
+      run: |
+        #
+        : download installer
+        curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
+        #
+        : skip rest if installer has not changed
+        sha256sum -c "$INSTALLER_ZIP".sha256 && exit 0
+        #
+        : update checksum
+        sha256sum "$INSTALLER_ZIP" > "$INSTALLER_ZIP".sha256
+        #
+        : extract version
+        unzip "$INSTALLER_ZIP"
+        aws/dist/aws --version | tee "$INSTALLER_ZIP".version
+        version=$(gawk -v RS=' |\n' -v FS=/ '$1 == "aws-cli" {print $2}' "$INSTALLER_ZIP")
+        printf 'version: %q\n' "$version"
+        #
+        : push updated installer details to repo
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW}@github.io"
+        git add "$INSTALLER_ZIP".*
+        git commit -m "version $version is now available"
+        git push
