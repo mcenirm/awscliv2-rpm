@@ -5,11 +5,11 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
-  build:
+  checkinstaller:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    - run: curl -sLRO https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
     - run: sha256sum awscli-exe-linux-x86_64.zip > example.sha256
     - run: unzip awscli-exe-linux-x86_64.zip
     - run: aws/dist/aws --version > example.version
