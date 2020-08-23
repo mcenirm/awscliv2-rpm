@@ -39,6 +39,8 @@ jobs:
             git add "$product".version
           fi
         done
+    - name: rebuild spec file, etc.
+      run: ./respecit | xargs --no-run-if-empty git add
     - name: check for changes to commit
       id: check
       continue-on-error: true

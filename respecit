@@ -1,0 +1,103 @@
+#!/bin/bash
+set -euo pipefail
+
+release=1
+version=$(cat aws-cli.version)
+
+RPM_BUILD_ROOT='$RPM_BUILD_ROOT'
+HOME='$HOME'
+CODEBEGIN='`'
+CODEEND='`'
+
+respec () { cat > "$1" ; echo "$1" ; }
+
+respec awscliv2.spec <<EOF
+Summary: AWS CLI version 2
+License: Apache License 2.0
+# Group: ???
+Name: awscliv2
+URL: https://docs.aws.amazon.com/cli/
+Version: ${version}
+Release: ${release}%{?dist}
+Source0: https://awscli.amazonaws.com/awscli-exe-linux-%{_arch}.zip
+NoSource: 0
+
+# skip debuginfo
+%define debug_package %{nil}
+
+%description
+The AWS Command Line Interface (AWS CLI) is an open
+source tool that enables you to interact with AWS
+services using commands in your command-line shell.
+
+%prep
+%setup -q -n aws
+
+%build
+
+%install
+sh -x ./install --install-dir "$RPM_BUILD_ROOT"/usr/libexec/awscliv2 --bin-dir "$RPM_BUILD_ROOT"/usr/bin
+# redo symlinks to avoid complaint about them containing $RPM_BUILD_ROOT
+ln -sf ../libexec/awscliv2/v2/current/bin/aws "$RPM_BUILD_ROOT"/usr/bin/aws
+ln -sf ../libexec/awscliv2/v2/current/bin/aws_completer "$RPM_BUILD_ROOT"/usr/bin/aws_completer
+rm -f "$RPM_BUILD_ROOT"/usr/libexec/awscliv2/v2/current
+ln -sf ${version} "$RPM_BUILD_ROOT"/usr/libexec/awscliv2/v2/current
+
+%check
+"$RPM_BUILD_ROOT"/usr/bin/aws --version
+
+%files
+/usr/bin/aws
+/usr/bin/aws_completer
+/usr/libexec/awscliv2
+EOF
+
+respec rebuildit <<EOF
+#!/bin/bash
+set -euo pipefail
+
+sha256sum -c awscli-exe-linux-x86_64.zip.sha256
+
+rpmlint awscliv2.spec
+
+# create nosrc rpm
+rsync -ai awscli-exe-linux-x86_64.zip $HOME/rpmbuild/SOURCES/
+rpmbuild -bs awscliv2.spec
+rsync -ai $HOME/rpmbuild/SRPMS/ ./SRPMS/
+
+# create binary rpm
+rpm -Uvh ./SRPMS/awscliv2-${version}-${release}.el7.nosrc.rpm
+rpmbuild -ba ~/rpmbuild/SPECS/awscliv2.spec
+rsync -ai $HOME/rpmbuild/RPMS/ ./RPMS/
+EOF
+
+respec retestit <<EOF
+#!/bin/bash
+set -euo pipefail
+
+rpm --test -ivh ./RPMS/x86_64/awscliv2-${version}-${release}.el7.x86_64.rpm
+rpm -ivh ./RPMS/x86_64/awscliv2-${version}-${release}.el7.x86_64.rpm
+aws --version
+EOF
+
+respec README.md <<EOF
+# nosrcrpmawscliv2
+Can I make a no-source RPM for AWS CLI v2?
+
+(Better question: Is this a good idea? The installer is safe to redistribute, so maybe this would be better as a normal binary-only RPM.)
+
+
+# experimenting using docker-compose
+
+1. Download the [installer](https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip)
+1. ${CODEBEGIN}docker-compose build builder${CODEEND}
+1. ${CODEBEGIN}docker-compose run builder${CODEEND}
+    1. ${CODEBEGIN}./rebuildit${CODEEND}
+    1. ${CODEBEGIN}exit${CODEEND}
+1. ${CODEBEGIN}docker-compose run tester${CODEEND}
+    1. ${CODEBEGIN}./retestit${CODEEND}
+
+This should result in:
+* no-source RPM: ${CODEBEGIN}SRPMS/awscliv2-${version}-${release}.el7.nosrc.rpm${CODEEND}
+* installable RPM: ${CODEBEGIN}RPMS/x86_64/awscliv2-${version}-${release}.el7.x86_64.rpm${CODEEND}
+EOF
