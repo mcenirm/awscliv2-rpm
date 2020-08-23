@@ -1,7 +1,7 @@
 name: check for new installer
 on:
   schedule:
-    - cron: "50 23 * * 6"
+    - cron: "05 00 * * 0"
 jobs:
   check_for_new_installer:
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
       continue-on-error: true
       run: git diff --cached --name-status --exit-code
     - name: push updated installer details
-      if: steps.check.outcome == "failure"
+      if: steps.check.outcome == 'failure'
       shell: bash
       run: |
         git config user.name "$GITHUB_ACTOR"
