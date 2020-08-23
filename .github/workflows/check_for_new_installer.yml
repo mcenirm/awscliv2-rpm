@@ -3,7 +3,7 @@ on:
   push:
     branches: [ master ]
   schedule:
-    - cron: "05 01 * * 0"
+    - cron: "15 18 * * *"
 jobs:
   check_for_new_installer:
     runs-on: ubuntu-latest
