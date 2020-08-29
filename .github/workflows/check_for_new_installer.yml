@@ -2,8 +2,8 @@ name: check for new installer
 on:
   push:
     branches: [ master ]
-  schedule:
-    - cron: "15 18 * * *"
+  # schedule:
+  #   - cron: "15 18 * * *"
 jobs:
   check_for_new_installer:
     runs-on: ubuntu-latest
