@@ -1,26 +1,49 @@
 name: Draft workflow
+
 on:
   push:
     branches:
       - "nosuchbranch"
+
 jobs:
+
   check_for_new_installer:
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
+
   create_pull_request:
     needs: check_for_new_installer
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
+
   test_pull_request:
     needs: create_pull_request
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
+
   merge_pull_request:
     needs: test_pull_request
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
+
   build_rpm:
     needs: merge_pull_request
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
+
   test_rpm:
     needs: build_rpm
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
+
   release_rpm:
     needs: test_rpm
     runs-on: ubuntu-latest
+    steps:
+      - run: "true"
