@@ -42,7 +42,7 @@ jobs:
           github.pulls.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            title: "update to ${{ steps.commit.outputs.version }}".,
+            title: "update to ${{ steps.commit.outputs.version }}",
             head: "${{ steps.commit.outputs.branch }}",
             base: "main",
           });
