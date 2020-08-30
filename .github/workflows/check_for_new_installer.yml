@@ -8,38 +8,12 @@ on:
 jobs:
   check_for_new_installer:
     runs-on: ubuntu-latest
-    env:
-      INSTALLER_ZIP: awscli-exe-linux-x86_64.zip
     steps:
     - uses: actions/checkout@v2
-    - name: download installer
-      run: curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
-    - name: update installer checksum
-      run: |
-        sha256sum "$INSTALLER_ZIP" > "$INSTALLER_ZIP".sha256
-        git add "$INSTALLER_ZIP".sha256
-    - name: unzip installer
-      run: unzip -q "$INSTALLER_ZIP"
-    - name: extract version
-      shell: bash
+    - name: check for new installer
       run: |
         git rm -q -f --ignore-unmatch -- *.version
-        versions=$(aws/dist/aws --version)
-        printf '= %q\n' $versions
-        for pv in $versions
-        do
-          product=$(echo "${pv%%/*}" | tr '[:upper:]' '[:lower:]')
-          version=${pv#*/}
-          case "$product" in
-            aws-cli|python)  keep=yes ;;
-            *)               keep=no  ;;
-          esac
-          if [ $keep = yes ]
-          then
-            printf '%s\n' "$version" > "$product".version
-            git add "$product".version
-          fi
-        done
+        bash -x check_for_new_installer | xargs --no-run-if-empty git add
     - name: rebuild spec file, etc.
       run: ./respecit | xargs --no-run-if-empty git add
     - name: check for changes to commit

@@ -1,0 +1,25 @@
+#!/bin/bash
+set -euo pipefail
+
+INSTALLER_ZIP=awscli-exe-linux-x86_64.zip
+
+curl -sLRO https://awscli.amazonaws.com/"$INSTALLER_ZIP"
+sha256sum "$INSTALLER_ZIP" > "$INSTALLER_ZIP".sha256
+echo "$INSTALLER_ZIP".sha256
+unzip -q "$INSTALLER_ZIP"
+versions=$(aws/dist/aws --version)
+printf >&2 '= %q\n' $versions
+for pv in $versions
+do
+  product=$(echo "${pv%%/*}" | tr '[:upper:]' '[:lower:]')
+  version=${pv#*/}
+  case "$product" in
+    aws-cli|python)  keep=yes ;;
+    *)               keep=no  ;;
+  esac
+  if [ $keep = yes ]
+  then
+    printf '%s\n' "$version" > "$product".version
+    echo "$product".version
+  fi
+done
