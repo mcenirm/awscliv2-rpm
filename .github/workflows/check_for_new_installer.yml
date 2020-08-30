@@ -17,14 +17,31 @@ jobs:
     - name: rebuild spec file, etc.
       run: ./respecit | xargs --no-run-if-empty git add
     - name: check for changes to commit
-      id: check
+      id: changes
       continue-on-error: true
       run: git diff --cached --name-status --exit-code
     - name: push updated installer details
-      if: steps.check.outcome == 'failure'
+      if: steps.changes.outcome == 'failure'
+      id: commit
       shell: bash
       run: |
+        version=$(cat aws-cli.version)
+        branch=update-to-$version
+        git checkout -b $branch
         git config user.name "$GITHUB_ACTOR"
         git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
         git commit --file aws-cli.version
-        git push
+        git push origin $branch
+        echo "::set-output name=version::$version"
+        echo "::set-output name=branch::$branch"
+    - uses: actions/github-script@v3
+      if: steps.changes.outcome == 'failure'
+      with:
+        script: |
+          github.pulls.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: "update to ${{ steps.commit.outputs.version }}".,
+            head: "${{ steps.commit.outputs.branch }}",
+            base: "main",
+          });
