@@ -1,4 +1,4 @@
-name: check for new installer
+name: Check for new installer
 on:
   workflow_dispatch: {}
   push:
@@ -10,17 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: check for new installer
+    - name: Check for new installer
       run: |
         git rm -q -f --ignore-unmatch -- *.version
         bash -x check_for_new_installer | xargs --no-run-if-empty git add
-    - name: rebuild spec file, etc.
+    - name: Rebuild spec file, etc.
       run: ./respecit | xargs --no-run-if-empty git add
-    - name: check for changes to commit
+    - name: Check for changes to commit
       id: changes
       continue-on-error: true
       run: git diff --cached --name-status --exit-code
-    - name: push updated installer details
+    - name: Push updated installer details
       if: steps.changes.outcome == 'failure'
       id: commit
       shell: bash
@@ -34,7 +34,8 @@ jobs:
         git push origin $branch
         echo "::set-output name=version::$version"
         echo "::set-output name=branch::$branch"
-    - uses: actions/github-script@v3
+    - name: Create pull request
+      uses: actions/github-script@v3
       if: steps.changes.outcome == 'failure'
       with:
         script: |
