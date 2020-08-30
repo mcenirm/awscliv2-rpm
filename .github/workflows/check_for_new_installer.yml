@@ -1,5 +1,6 @@
 name: check for new installer
 on:
+  workflow_dispatch: {}
   push:
     branches: [ master ]
   # schedule:
