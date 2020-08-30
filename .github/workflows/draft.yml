@@ -1,6 +1,7 @@
 name: Draft workflow
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "nosuchbranch"
