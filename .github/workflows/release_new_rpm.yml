@@ -101,7 +101,8 @@ jobs:
               body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
             };
             core.info(JSON.stringify(details,null,2));
-            var pr = await github.pulls.create(details);
+            var pr_response = await github.pulls.create(details);
+            var pr = pr_response.data;
             core.info(JSON.stringify({pr: pr},null,2));
             return pr.number;
 
