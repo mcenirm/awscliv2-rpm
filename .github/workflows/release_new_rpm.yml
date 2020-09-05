@@ -156,8 +156,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.create_rpm.outputs.srpm_path }}
-          asset_name: ${{ steps.create_rpm.outputs.srpm_name }}
+          asset_path: ${{ steps.build_rpm.outputs.srpm_path }}
+          asset_name: ${{ steps.build_rpm.outputs.srpm_name }}
           asset_content_type: application/x-rpm
 
       - name: Upload RPM to release
@@ -168,6 +168,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.create_rpm.outputs.rpm_path }}
-          asset_name: ${{ steps.create_rpm.outputs.rpm_name }}
+          asset_path: ${{ steps.build_rpm.outputs.rpm_path }}
+          asset_name: ${{ steps.build_rpm.outputs.rpm_name }}
           asset_content_type: application/x-rpm
