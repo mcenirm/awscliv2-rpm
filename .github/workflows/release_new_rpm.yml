@@ -9,6 +9,18 @@ jobs:
   all:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug github scripting
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var details = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: github.ref,
+            };
+            core.info(details);
+            core.setFailed('stop here');
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -85,14 +97,16 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            github.pulls.create({
+            var payload = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: "Update to $AWS_CLI_VERSION",
+              title: "Update to " + env.AWS_CLI_VERSION,
               head: "${{ steps.commit_changes.outputs.branch }}",
               base: github.ref,
               body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
-            });
+            };
+            core.info(payload);
+            github.pulls.create(payload);
 
       - name: Merge pull request
         if: ${{ 'skipped' != steps.create_pr.conclusion }}
