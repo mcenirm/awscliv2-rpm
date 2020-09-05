@@ -89,6 +89,7 @@ jobs:
         id: create_pr
         uses: actions/github-script@v3
         with:
+          result-encoding: string
           script: |
             const fs = require('fs');
             var details = {
@@ -100,19 +101,22 @@ jobs:
               body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
             };
             core.info(JSON.stringify(details,null,2));
-            github.pulls.create(details);
+            var pr = github.pulls.create(details);
+            core.info(JSON.stringify({pr: pr},null,2));
+            return pr.number;
 
       - name: Merge pull request
         if: ${{ 'skipped' != steps.create_pr.conclusion }}
         id: merge_pr
+        env:
+          PULL_NUMBER: ${{ steps.create_pr.outputs.result }}
         uses: actions/github-script@v3
         with:
           script: |
-            var pr = steps.create_pr.outputs.result;
             var details = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: pr.number,
+              pull_number: process.env.PULL_NUMBER,
             };
             core.info(JSON.stringify(details,null,2));
             github.pulls.merge(details);
