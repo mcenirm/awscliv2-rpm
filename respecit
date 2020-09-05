@@ -7,7 +7,7 @@ version=$(cat aws-cli.version)
 release=1
 arch=x86_64
 vrsn=$(tr -dc '[:digit:]' < aws-cli.version)
-changelog_url="https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst#${vrsn}" 
+changelog_url="https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst#${vrsn}"
 
 # escaping variables in templates
 HOME='$HOME'
