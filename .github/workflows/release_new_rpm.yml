@@ -1,50 +1,80 @@
-name: Draft workflow
+name: Release new RPM
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "nosuchbranch"
+  # schedule:
+  #   - cron: "15 18 * * *"
 
 jobs:
-
-  check_for_new_installer:
+  all:
     runs-on: ubuntu-latest
     steps:
-      - run: "true"
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  create_pull_request:
-    needs: check_for_new_installer
-    runs-on: ubuntu-latest
-    steps:
-      - run: "true"
+      - name: Check for new installer
+        run: |
+          git rm -q -f --ignore-unmatch -- *.version
+          ./check_for_new_installer | xargs --no-run-if-empty git add
 
-  test_pull_request:
-    needs: create_pull_request
-    runs-on: ubuntu-latest
-    steps:
-      - run: "true"
+      - name: Rebuild spec file, etc.
+        run: ./respecit | xargs --no-run-if-empty git add
 
-  merge_pull_request:
-    needs: test_pull_request
-    runs-on: ubuntu-latest
-    steps:
-      - run: "true"
+      - name: Check for changes to commit
+        id: check_for_changes
+        run: |
+          if ! git diff --cached --name-status --exit-code
+          then
+            echo "::set-output name=changed::yes"
+          fi
 
-  build_rpm:
-    needs: merge_pull_request
-    runs-on: ubuntu-latest
-    steps:
-      - run: "true"
+      - name: Push updated installer details
+        if: ${{ steps.check_for_changes.outputs.changed }}
+        id: commit
+        shell: bash
+        run: |
+          version=$(cat aws-cli.version)
+          branch=update-to-$version
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
+          git commit --file aws-cli.version
+          git checkout -b "$branch"
+          git push origin "$branch"
+          echo "::set-output name=version::$version"
+          echo "::set-output name=branch::$branch"
 
-  test_rpm:
-    needs: build_rpm
-    runs-on: ubuntu-latest
-    steps:
-      - run: "true"
+      - name: Build builder image
+        if: ${{ steps.check_for_changes.outputs.changed }}
+        run: docker-compose build builder
 
-  release_rpm:
-    needs: test_rpm
-    runs-on: ubuntu-latest
-    steps:
-      - run: "true"
+      - name: Build RPM
+        if: ${{ steps.check_for_changes.outputs.changed }}
+        run: docker-compose run builder ./rebuildit
+
+      - name: test_rpm
+        if: ${{ steps.check_for_changes.outputs.changed }}
+        id: tester
+        run: docker-compose run tester ./retestit
+
+      - name: save_bad_rpm
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: rpms
+          path: "*RPMS**/*.rpm"
+          if-no-files-found: error
+
+
+
+      # - name: Create pull request
+      #   uses: actions/github-script@v3
+      #   if: ${{ steps.changes.outcome == 'failure' }}
+      #   with:
+      #     script: |
+      #       github.pulls.create({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         title: "update to ${{ steps.commit.outputs.version }}",
+      #         head: "${{ steps.commit.outputs.branch }}",
+      #         base: "main",
+      #       });
