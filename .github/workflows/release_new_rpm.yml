@@ -50,12 +50,12 @@ jobs:
         if: ${{ env.installer_has_changed == 'yes' }}
         run: docker-compose run builder ./rebuildit
 
-      - name: test_rpm
+      - name: Test RPM
         if: ${{ env.installer_has_changed == 'yes' }}
         id: tester
         run: docker-compose run tester ./retestit
 
-      - name: save_bad_rpm
+      - name: Save bad RPM
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
