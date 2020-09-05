@@ -5,6 +5,8 @@ sha256sum -c awscli-exe-linux-x86_64.zip.sha256
 
 rpmlint awscliv2.spec
 
+mkdir -pv ./SRPMS ./RPMS/x86_64
+
 # create nosrc rpm
 rsync -ai awscli-exe-linux-x86_64.zip{,.sha256} $HOME/rpmbuild/SOURCES/
 rpmbuild -bs awscliv2.spec
