@@ -9,17 +9,6 @@ jobs:
   all:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug github scripting
-        uses: actions/github-script@v3
-        with:
-          script: |
-            var details = {
-              context: context,
-              env: process.env,
-            };
-            core.info(JSON.stringify(details,null,2));
-            core.setFailed('stop here');
-
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -27,6 +16,12 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
+          if [ -n "$GITHUB_BASE_REF" ]
+          then
+            echo "::set-env name=BASE_REF::$GITHUB_BASE_REF"
+          else
+            echo "::set-env name=BASE_REF::${GITHUB_REF#refs/heads/}"
+          fi
 
       - name: Check for new installer
         run: |
@@ -99,9 +94,9 @@ jobs:
             var details = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: "Update to " + env.AWS_CLI_VERSION,
+              title: "Update to " + process.env.AWS_CLI_VERSION,
               head: "${{ steps.commit_changes.outputs.branch }}",
-              base: github.ref,
+              base: process.env.BASE_REF,
               body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
             };
             core.info(JSON.stringify(details,null,2));
@@ -126,7 +121,7 @@ jobs:
           tag=v${AWS_CLI_VERSION}-${AWSCLIV2_RPM_RELEASE}
           echo "::set-output name=tag::$tag"
           git fetch -v --all --prune --prune-tags
-          git checkout ${{ github.ref }}
+          git checkout "$BASE_REF"
           git pull --ff-only
           git tag -a -F awscliv2-rpm-details.txt "$tag"
           git push --tags
