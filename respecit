@@ -2,9 +2,12 @@
 set -euo pipefail
 
 # important settings
+name=awscliv2
 version=$(cat aws-cli.version)
 release=1
 arch=x86_64
+vrsn=$(tr -dc '[:digit:]' < aws-cli.version)
+changelog_url="https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst#${vrsn}" 
 
 # escaping variables in templates
 HOME='$HOME'
@@ -14,11 +17,22 @@ CODEEND='`'
 # print the file name so it can be fed to "git add"
 respec () { cat > "$1" ; echo "$1" ; }
 
-respec awscliv2.spec <<EOF
+respec ${name}-rpm-details.txt <<EOF
+aws-cli version: ${version}
+${name} release: ${release}
+
+${changelog_url}
+EOF
+
+respec ${name}-rpm.release <<EOF
+${release}
+EOF
+
+respec ${name}.spec <<EOF
 Summary: AWS CLI version 2
 License: Apache License 2.0
 # Group: ???
-Name: awscliv2
+Name: ${name}
 URL: https://docs.aws.amazon.com/cli/
 Version: ${version}
 Release: ${release}%{?dist}
@@ -42,12 +56,12 @@ sha256sum -c "%{S:1}"
 %build
 
 %install
-sh -x ./install --install-dir %{buildroot}/usr/libexec/awscliv2 --bin-dir %{buildroot}/usr/bin
+sh -x ./install --install-dir %{buildroot}/usr/libexec/${name} --bin-dir %{buildroot}/usr/bin
 # redo symlinks to avoid complaint about them containing RPM_BUILD_ROOT
-ln -sf ../libexec/awscliv2/v2/current/bin/aws %{buildroot}/usr/bin/aws
-ln -sf ../libexec/awscliv2/v2/current/bin/aws_completer %{buildroot}/usr/bin/aws_completer
-rm -f %{buildroot}/usr/libexec/awscliv2/v2/current
-ln -sf ${version} %{buildroot}/usr/libexec/awscliv2/v2/current
+ln -sf ../libexec/${name}/v2/current/bin/aws %{buildroot}/usr/bin/aws
+ln -sf ../libexec/${name}/v2/current/bin/aws_completer %{buildroot}/usr/bin/aws_completer
+rm -f %{buildroot}/usr/libexec/${name}/v2/current
+ln -sf ${version} %{buildroot}/usr/libexec/${name}/v2/current
 
 %check
 %{buildroot}/usr/bin/aws --version
@@ -55,7 +69,7 @@ ln -sf ${version} %{buildroot}/usr/libexec/awscliv2/v2/current
 %files
 /usr/bin/aws
 /usr/bin/aws_completer
-/usr/libexec/awscliv2
+/usr/libexec/${name}
 EOF
 
 respec rebuildit <<EOF
@@ -64,16 +78,16 @@ set -euo pipefail
 
 sha256sum -c awscli-exe-linux-${arch}.zip.sha256
 
-rpmlint awscliv2.spec
+rpmlint ${name}.spec
 
 # create nosrc rpm
 rsync -ai awscli-exe-linux-${arch}.zip{,.sha256} $HOME/rpmbuild/SOURCES/
-rpmbuild -bs awscliv2.spec
+rpmbuild -bs ${name}.spec
 rsync -ai $HOME/rpmbuild/SRPMS/ ./SRPMS/
 
 # create binary rpm
-rpm -Uvh ./SRPMS/awscliv2-${version}-${release}.el7.nosrc.rpm
-rpmbuild -ba ~/rpmbuild/SPECS/awscliv2.spec
+rpm -Uvh ./SRPMS/${name}-${version}-${release}.el7.nosrc.rpm
+rpmbuild -ba ~/rpmbuild/SPECS/${name}.spec
 rsync -ai $HOME/rpmbuild/RPMS/ ./RPMS/
 EOF
 
@@ -81,13 +95,13 @@ respec retestit <<EOF
 #!/bin/bash
 set -euo pipefail
 
-rpm --test -ivh ./RPMS/${arch}/awscliv2-${version}-${release}.el7.${arch}.rpm
-rpm -ivh ./RPMS/${arch}/awscliv2-${version}-${release}.el7.${arch}.rpm
+rpm --test -ivh ./RPMS/${arch}/${name}-${version}-${release}.el7.${arch}.rpm
+rpm -ivh ./RPMS/${arch}/${name}-${version}-${release}.el7.${arch}.rpm
 aws --version
 EOF
 
 respec README.md <<EOF
-# nosrcrpmawscliv2
+# nosrcrpm${name}
 Can I make a no-source RPM for AWS CLI v2?
 
 (Better question: Is this a good idea? The installer is safe to redistribute, so maybe this would be better as a normal binary-only RPM.)
@@ -104,6 +118,6 @@ Can I make a no-source RPM for AWS CLI v2?
     1. ${CODEBEGIN}./retestit${CODEEND}
 
 This should result in:
-* no-source RPM: ${CODEBEGIN}SRPMS/awscliv2-${version}-${release}.el7.nosrc.rpm${CODEEND}
-* installable RPM: ${CODEBEGIN}RPMS/${arch}/awscliv2-${version}-${release}.el7.${arch}.rpm${CODEEND}
+* no-source RPM: ${CODEBEGIN}SRPMS/${name}-${version}-${release}.el7.nosrc.rpm${CODEEND}
+* installable RPM: ${CODEBEGIN}RPMS/${arch}/${name}-${version}-${release}.el7.${arch}.rpm${CODEEND}
 EOF
