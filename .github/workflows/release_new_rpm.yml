@@ -62,3 +62,16 @@ jobs:
           name: rpms
           path: "*RPMS**/*.rpm"
           if-no-files-found: error
+
+      - name: Create pull request
+        if: ${{ env.installer_has_changed == 'yes' }}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "update to ${{ steps.commit.outputs.version }}",
+              head: "${{ steps.commit.outputs.branch }}",
+              base: "main",
+            });
