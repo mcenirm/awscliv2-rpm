@@ -84,6 +84,7 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
+            const fs = require('fs');
             github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
