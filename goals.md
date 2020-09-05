@@ -2,8 +2,9 @@
 
 ## Minimum
 
-- [ ] build an installable RPM for AWS CLI v2
-- [ ] support EL7 (RHEL, Centos)
+- [X] build an installable RPM for AWS CLI v2
+- [X] support EL7 (RHEL, Centos)
+- [X] bare minimum testing: Does it install?
 - [ ] test it properly, so we get notified when an upstream change breaks an assumption
 
 ## Stretch
@@ -11,11 +12,13 @@
 - [ ] support AMZN2, EL8, ___?
 - [ ] conflict with RPM for AWS CLI v1 ("awscli")
 - [ ] track versions for official releases of AWS CLI v2
-- [ ] publish RPM to releases on github project
-- [ ] use github actions so this is all automated
-- [ ] automate trigger (releases? weekly?) for new versions
-- [ ] avoid having to update this repo to handle new versions
-- [ ] support notifications of new versions
+- [X] publish RPM to releases on github project
+- [X] use github actions so this is all automated
+- [X] schedule workflow (daily check for new installer)
+- [ ] be smarter about new versions than just checking every day
+- [ ] avoid having to update this repo to handle new versions (TODO: clarify goal)
+- [X] support notifications of new versions (at least, I get emails from the PR and releases)
+- [ ] support other (?) notifications of new versions
 - [ ] properly check PGP signature
 - [ ] look into similar package for the session manager plugin
 

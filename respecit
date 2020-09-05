@@ -99,25 +99,3 @@ rpm --test -ivh ./RPMS/${arch}/${name}-${version}-${release}.el7.${arch}.rpm
 rpm -ivh ./RPMS/${arch}/${name}-${version}-${release}.el7.${arch}.rpm
 aws --version
 EOF
-
-respec README.md <<EOF
-# nosrcrpm${name}
-Can I make a no-source RPM for AWS CLI v2?
-
-(Better question: Is this a good idea? The installer is safe to redistribute, so maybe this would be better as a normal binary-only RPM.)
-
-
-# experimenting using docker-compose
-
-1. Download the [installer](https://awscli.amazonaws.com/awscli-exe-linux-${arch}.zip)
-1. ${CODEBEGIN}docker-compose build builder${CODEEND}
-1. ${CODEBEGIN}docker-compose run builder${CODEEND}
-    1. ${CODEBEGIN}./rebuildit${CODEEND}
-    1. ${CODEBEGIN}exit${CODEEND}
-1. ${CODEBEGIN}docker-compose run tester${CODEEND}
-    1. ${CODEBEGIN}./retestit${CODEEND}
-
-This should result in:
-* no-source RPM: ${CODEBEGIN}SRPMS/${name}-${version}-${release}.el7.nosrc.rpm${CODEEND}
-* installable RPM: ${CODEBEGIN}RPMS/${arch}/${name}-${version}-${release}.el7.${arch}.rpm${CODEEND}
-EOF
