@@ -108,11 +108,14 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            github.pulls.merge({
+            var pr = steps.create_pr.outputs.result;
+            var details = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ steps.create_pr.outputs.result.number }},
-            });
+              pull_number: pr.number,
+            };
+            core.info(JSON.stringify(details,null,2));
+            github.pulls.merge(details);
 
       - name: Tag for release
         if: ${{ 'skipped' != steps.merge_pr.conclusion }}
