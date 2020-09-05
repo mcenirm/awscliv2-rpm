@@ -12,13 +12,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Configure git for commit
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
+
       - name: Check for new installer
         run: |
           git rm -q -f --ignore-unmatch -- *.version
           ./check_for_new_installer | xargs --no-run-if-empty git add
 
       - name: Rebuild spec file, etc.
-        run: ./respecit | xargs --no-run-if-empty git add
+        run: |
+          ./respecit | xargs --no-run-if-empty git add
+          echo "::set-env name=AWS_CLI_VERSION::$(cat aws-cli.version)"
+          echo "::set-env name=AWSCLIV2_RPM_RELEASE::$(cat awscliv2-rpm.release)"
 
       - name: Check for changes to commit
         id: check_for_changes
@@ -31,17 +39,12 @@ jobs:
       - name: Push updated installer details
         if: ${{ 'yes' == steps.check_for_changes.outputs.installer_has_changed }}
         id: commit_changes
-        shell: bash
         run: |
-          version=$(cat aws-cli.version)
-          branch=update-to-$version
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
-          git commit --file aws-cli.version
+          branch=update-to-$AWS_CLI_VERSION
+          echo "::set-output name=branch::$branch"
+          git commit --file awscliv2-rpm-details.txt
           git checkout -b "$branch"
           git push origin "$branch"
-          echo "::set-output name=version::$version"
-          echo "::set-output name=branch::$branch"
 
       - name: Build builder image
         if: ${{ 'skipped' != steps.commit_changes.conclusion }}
@@ -51,14 +54,23 @@ jobs:
       - name: Build RPM
         if: ${{ 'skipped' != steps.build_image.conclusion }}
         id: build_rpm
-        run: docker-compose run superbuilder ./rebuildit
+        run: |
+          docker-compose run superbuilder ./rebuildit
+          srpm_path=$(find SRPMS -type f -name '*.rpm | head -n1)
+          srpm_name=$(basename "$srpm_path")
+          rpm_path=$(find RPMS -type f -name '*.rpm | head -n1)
+          rpm_name=$(basename "$rpm")
+          echo "::set-output name=srpm_path::$srpm_path"
+          echo "::set-output name=srpm_name::$srpm_name"
+          echo "::set-output name=rpm_path::$rpm_path"
+          echo "::set-output name=rpm_name::$rpm_name"
 
       - name: Test RPM
         if: ${{ 'skipped' != steps.build_rpm.conclusion }}
         id: test_rpm
         run: docker-compose run tester ./retestit
 
-      - name: Save bad RPM
+      - name: Save bad RPMs
         if: ${{ 'failure' == steps.test_rpm.conclusion }}
         uses: actions/upload-artifact@v2
         with:
@@ -75,7 +87,61 @@ jobs:
             github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: "update to ${{ steps.commit.outputs.version }}",
-              head: "${{ steps.commit.outputs.branch }}",
-              base: "main",
+              title: "Update to $AWS_CLI_VERSION",
+              head: "${{ steps.commit_changes.outputs.branch }}",
+              base: github.ref,
+              body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
             });
+
+      - name: Merge pull request
+        if: ${{ 'skipped' != steps.create_pr.conclusion }}
+        id: merge_pr
+        uses: actions/github-script@v3
+        with:
+          script: |
+            github.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.create_pr.outputs.result.number }},
+            });
+
+      - name: Tag for release
+        if: ${{ 'skipped' != steps.merge_pr.conclusion }}
+        id: tag_for_release
+        run: |
+          tag=v${AWS_CLI_VERSION}-${AWSCLIV2_RPM_RELEASE}
+          echo "::set-output name=tag::$tag"
+          git fetch -v --all --prune --prune-tags
+          git checkout ${{ github.ref }}
+          git pull --ff-only
+          git tag -a -F awscliv2-rpm-details.txt "$tag"
+          git push --tags
+
+      - name: Create release
+        if: ${{ 'skipped' != steps.tag_for_release.conclusion }}
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.tag_for_release.outputs.tag }}
+          release_name: Release ${{ steps.tag_for_release.outputs.tag }}
+          body_file: awscliv2-rpm-details.txt
+
+      - name: Upload SRPM to release
+        if: ${{ 'skipped' != steps.create_release.conclusion }}
+        id: upload-srpm-to-release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.create_rpm.outputs.srpm_path }}
+          asset_name: ${{ steps.create_rpm.outputs.srpm_name }}
+          asset_content_type: application/x-rpm
+
+      - name: Upload RPM to release
+        if: ${{ 'skipped' != steps.create_release.conclusion }}
+        id: upload-rpm-to-release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.create_rpm.outputs.rpm_path }}
+          asset_name: ${{ steps.create_rpm.outputs.rpm_name }}
+          asset_content_type: application/x-rpm
