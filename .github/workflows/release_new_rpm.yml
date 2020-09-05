@@ -18,7 +18,7 @@ jobs:
               repo: context.repo.repo,
               ref: github.ref,
             };
-            core.info(details);
+            core.info(JSON.stringify(details,null,2));
             core.setFailed('stop here');
 
       - name: Checkout
@@ -97,7 +97,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            var payload = {
+            var details = {
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: "Update to " + env.AWS_CLI_VERSION,
@@ -105,8 +105,8 @@ jobs:
               base: github.ref,
               body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
             };
-            core.info(payload);
-            github.pulls.create(payload);
+            core.info(JSON.stringify(details,null,2));
+            github.pulls.create(details);
 
       - name: Merge pull request
         if: ${{ 'skipped' != steps.create_pr.conclusion }}
