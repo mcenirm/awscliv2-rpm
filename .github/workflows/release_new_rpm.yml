@@ -14,8 +14,8 @@ jobs:
         with:
           script: |
             var details = {
-              github: github,
               context: context,
+              env: process.env,
             };
             core.info(JSON.stringify(details,null,2));
             core.setFailed('stop here');
