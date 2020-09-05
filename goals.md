@@ -14,6 +14,7 @@
 - [ ] track versions for official releases of AWS CLI v2
 - [X] publish RPM to releases on github project
 - [X] use github actions so this is all automated
+- [ ] simplify workflow using hub cli?
 - [X] schedule workflow (daily check for new installer)
 - [ ] be smarter about new versions than just checking every day
 - [ ] avoid having to update this repo to handle new versions (TODO: clarify goal)
