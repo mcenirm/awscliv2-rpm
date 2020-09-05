@@ -4,6 +4,8 @@ Automated RPM packaging of AWS CLI v2 using GitHub Actions
 
 Only EL7 (RHEL, Centos, ???) are supported now, but other distros are in the [wishlist](goals.md).
 
+![Release new RPM](https://github.com/mcenirm/awscliv2-rpm/workflows/Release%20new%20RPM/badge.svg?branch=main&event=schedule)
+
 
 # Building the RPM locally
 
