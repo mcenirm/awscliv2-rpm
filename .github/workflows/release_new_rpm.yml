@@ -21,15 +21,16 @@ jobs:
         run: ./respecit | xargs --no-run-if-empty git add
 
       - name: Check for changes to commit
+        id: check_for_changes
         run: |
           if ! git diff --cached --name-status --exit-code
           then
-            echo "::set-env name=installer_has_changed::yes"
+            echo "::set-output name=installer_has_changed::yes"
           fi
 
       - name: Push updated installer details
-        if: ${{ env.installer_has_changed == 'yes' }}
-        id: commit
+        if: ${{ 'yes' == steps.check_for_changes.outputs.installer_has_changed }}
+        id: commit_changes
         shell: bash
         run: |
           version=$(cat aws-cli.version)
@@ -43,20 +44,22 @@ jobs:
           echo "::set-output name=branch::$branch"
 
       - name: Build builder image
-        if: ${{ env.installer_has_changed == 'yes' }}
+        if: ${{ 'skipped' != steps.commit_changes.conclusion }}
+        id: build_image
         run: docker-compose build superbuilder
 
       - name: Build RPM
-        if: ${{ env.installer_has_changed == 'yes' }}
+        if: ${{ 'skipped' != steps.build_image.conclusion }}
+        id: build_rpm
         run: docker-compose run superbuilder ./rebuildit
 
       - name: Test RPM
-        if: ${{ env.installer_has_changed == 'yes' }}
-        id: tester
+        if: ${{ 'skipped' != steps.build_rpm.conclusion }}
+        id: test_rpm
         run: docker-compose run tester ./retestit
 
       - name: Save bad RPM
-        if: ${{ failure() }}
+        if: ${{ 'failure' == steps.test_rpm.conclusion }}
         uses: actions/upload-artifact@v2
         with:
           name: rpms
@@ -64,7 +67,8 @@ jobs:
           if-no-files-found: error
 
       - name: Create pull request
-        if: ${{ env.installer_has_changed == 'yes' }}
+        if: ${{ 'skipped' != steps.test_rpm.conclusion }}
+        id: create_pr
         uses: actions/github-script@v3
         with:
           script: |
