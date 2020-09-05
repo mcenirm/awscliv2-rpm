@@ -66,6 +66,9 @@ jobs:
           srpm_name=$(basename "$srpm_path")
           rpm_path=$(find RPMS -type f -name '*.rpm' | head -n1)
           rpm_name=$(basename "$rpm_path")
+          echo ======================================
+          declare -p {s,}rpm_{path,name}
+          echo ======================================
           echo "::set-output name=srpm_path::$srpm_path"
           echo "::set-output name=srpm_name::$srpm_name"
           echo "::set-output name=rpm_path::$rpm_path"
@@ -168,10 +171,3 @@ jobs:
           asset_path: ${{ steps.create_rpm.outputs.rpm_path }}
           asset_name: ${{ steps.create_rpm.outputs.rpm_name }}
           asset_content_type: application/x-rpm
-
-      - name: Debug steps
-        if: ${{ always() }}
-        uses: actions/github-script@v3
-        with:
-          script: |
-            core.info(JSON.stringify({steps: steps, env: process.env}, null, 2));
