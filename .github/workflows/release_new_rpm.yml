@@ -137,6 +137,8 @@ jobs:
       - name: Create release
         if: ${{ 'skipped' != steps.tag_for_release.conclusion }}
         id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: actions/create-release@v1
         with:
           tag_name: ${{ steps.tag_for_release.outputs.tag }}
@@ -146,6 +148,8 @@ jobs:
       - name: Upload SRPM to release
         if: ${{ 'skipped' != steps.create_release.conclusion }}
         id: upload-srpm-to-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -156,6 +160,8 @@ jobs:
       - name: Upload RPM to release
         if: ${{ 'skipped' != steps.create_release.conclusion }}
         id: upload-rpm-to-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
