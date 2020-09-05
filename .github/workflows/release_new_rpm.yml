@@ -44,11 +44,11 @@ jobs:
 
       - name: Build builder image
         if: ${{ env.installer_has_changed == 'yes' }}
-        run: docker-compose build builder
+        run: docker-compose build superbuilder
 
       - name: Build RPM
         if: ${{ env.installer_has_changed == 'yes' }}
-        run: docker-compose run builder ./rebuildit
+        run: docker-compose run superbuilder ./rebuildit
 
       - name: Test RPM
         if: ${{ env.installer_has_changed == 'yes' }}

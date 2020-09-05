@@ -5,6 +5,14 @@ services:
     volumes:
       - .:/work
     working_dir: /work
+  superbuilder:
+    build:
+      context: ./builder
+      args:
+        build_as_root: "yes"
+    volumes:
+      - .:/work
+    working_dir: /work
   tester:
     image: centos:7
     volumes:
