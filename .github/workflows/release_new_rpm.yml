@@ -62,9 +62,9 @@ jobs:
         id: build_rpm
         run: |
           docker-compose run superbuilder ./rebuildit
-          srpm_path=$(find SRPMS -type f -name '*.rpm | head -n1)
+          srpm_path=$(find SRPMS -type f -name '*.rpm' | head -n1)
           srpm_name=$(basename "$srpm_path")
-          rpm_path=$(find RPMS -type f -name '*.rpm | head -n1)
+          rpm_path=$(find RPMS -type f -name '*.rpm' | head -n1)
           rpm_name=$(basename "$rpm")
           echo "::set-output name=srpm_path::$srpm_path"
           echo "::set-output name=srpm_name::$srpm_name"
