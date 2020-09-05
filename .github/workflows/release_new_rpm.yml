@@ -141,7 +141,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag_for_release.outputs.tag }}
           release_name: Release ${{ steps.tag_for_release.outputs.tag }}
-          body_file: awscliv2-rpm-details.txt
+          body_path: awscliv2-rpm-details.txt
 
       - name: Upload SRPM to release
         if: ${{ 'skipped' != steps.create_release.conclusion }}
