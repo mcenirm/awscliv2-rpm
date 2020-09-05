@@ -14,9 +14,8 @@ jobs:
         with:
           script: |
             var details = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: github.ref,
+              github: github,
+              context: context,
             };
             core.info(JSON.stringify(details,null,2));
             core.setFailed('stop here');
