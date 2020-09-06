@@ -21,7 +21,7 @@
 - [X] support notifications of new versions (at least, I get emails from the PR and releases)
 - [ ] support other (?) notifications of new versions
 - [ ] properly check PGP signature
-- [ ] look into similar package for the session manager plugin
+- [ ] ~~look into similar package for the session manager plugin~~ (it's already an RPM)
 
 
 # References
