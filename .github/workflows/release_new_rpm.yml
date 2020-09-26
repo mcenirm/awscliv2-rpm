@@ -46,11 +46,8 @@ jobs:
         if: ${{ 'yes' == steps.check_for_changes.outputs.installer_has_changed }}
         id: commit_changes
         run: |
-          branch=update-to-$AWS_CLI_VERSION
-          echo "::set-output name=branch::$branch"
           git commit --file awscliv2-rpm-details.txt
-          git checkout -b "$branch"
-          git push origin "$branch"
+          git push
 
       - name: Build builder image
         if: ${{ 'skipped' != steps.commit_changes.conclusion }}
@@ -87,46 +84,8 @@ jobs:
           path: "*RPMS**/*.rpm"
           if-no-files-found: error
 
-      - name: Create pull request
-        if: ${{ 'skipped' != steps.test_rpm.conclusion }}
-        id: create_pr
-        uses: actions/github-script@v3
-        with:
-          result-encoding: string
-          script: |
-            const fs = require('fs');
-            var details = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: "Update to " + process.env.AWS_CLI_VERSION,
-              head: "${{ steps.commit_changes.outputs.branch }}",
-              base: process.env.BASE_REF,
-              body: fs.readFileSync("awscliv2-rpm-details.txt").toString(),
-            };
-            core.info(JSON.stringify(details,null,2));
-            var pr_response = await github.pulls.create(details);
-            var pr = pr_response.data;
-            core.info(JSON.stringify({pr: pr},null,2));
-            return pr.number;
-
-      - name: Merge pull request
-        if: ${{ 'skipped' != steps.create_pr.conclusion }}
-        id: merge_pr
-        env:
-          PULL_NUMBER: ${{ steps.create_pr.outputs.result }}
-        uses: actions/github-script@v3
-        with:
-          script: |
-            var details = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: process.env.PULL_NUMBER,
-            };
-            core.info(JSON.stringify(details,null,2));
-            github.pulls.merge(details);
-
       - name: Tag for release
-        if: ${{ 'skipped' != steps.merge_pr.conclusion }}
+        if: ${{ 'skipped' != steps.test_rpm.conclusion }}
         id: tag_for_release
         run: |
           tag=v${AWS_CLI_VERSION}-${AWSCLIV2_RPM_RELEASE}
