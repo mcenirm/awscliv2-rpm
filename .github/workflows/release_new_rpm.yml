@@ -18,9 +18,9 @@ jobs:
           git config user.email "${GITHUB_REPOSITORY//\//+}+${GITHUB_WORKFLOW// /-}@github.io"
           if [ -n "$GITHUB_BASE_REF" ]
           then
-            echo "::set-env name=BASE_REF::$GITHUB_BASE_REF"
+            echo "BASE_REF=$GITHUB_BASE_REF" >> $GITHUB_ENV
           else
-            echo "::set-env name=BASE_REF::${GITHUB_REF#refs/heads/}"
+            echo "BASE_REF=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
           fi
 
       - name: Check for new installer
@@ -31,8 +31,8 @@ jobs:
       - name: Rebuild spec file, etc.
         run: |
           ./respecit | xargs --no-run-if-empty git add
-          echo "::set-env name=AWS_CLI_VERSION::$(cat aws-cli.version)"
-          echo "::set-env name=AWSCLIV2_RPM_RELEASE::$(cat awscliv2-rpm.release)"
+          echo "AWS_CLI_VERSION=$(cat aws-cli.version)" >> $GITHUB_ENV
+          echo "AWSCLIV2_RPM_RELEASE=$(cat awscliv2-rpm.release)" >> $GITHUB_ENV
 
       - name: Check for changes to commit
         id: check_for_changes
