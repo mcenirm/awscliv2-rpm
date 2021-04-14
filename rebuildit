@@ -11,6 +11,6 @@ rpmbuild -bs awscliv2.spec
 rsync -ai $HOME/rpmbuild/SRPMS/ ./SRPMS/
 
 # create binary rpm
-rpm -Uvh ./SRPMS/awscliv2-2.1.36-1.el7.nosrc.rpm
+rpm -Uvh ./SRPMS/awscliv2-2.1.37-1.el7.nosrc.rpm
 rpmbuild -ba ~/rpmbuild/SPECS/awscliv2.spec
 rsync -ai $HOME/rpmbuild/RPMS/ ./RPMS/
