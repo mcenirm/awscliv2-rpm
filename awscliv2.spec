@@ -3,7 +3,7 @@ License: Apache License 2.0
 # Group: ???
 Name: awscliv2
 URL: https://docs.aws.amazon.com/cli/
-Version: 2.2.28
+Version: 2.2.29
 Release: 1%{?dist}
 Source0: https://awscli.amazonaws.com/awscli-exe-linux-%{_arch}.zip
 Source1: awscli-exe-linux-%{_arch}.zip.sha256
@@ -30,7 +30,7 @@ sh -x ./install --install-dir %{buildroot}/usr/libexec/awscliv2 --bin-dir %{buil
 ln -sf ../libexec/awscliv2/v2/current/bin/aws %{buildroot}/usr/bin/aws
 ln -sf ../libexec/awscliv2/v2/current/bin/aws_completer %{buildroot}/usr/bin/aws_completer
 rm -f %{buildroot}/usr/libexec/awscliv2/v2/current
-ln -sf 2.2.28 %{buildroot}/usr/libexec/awscliv2/v2/current
+ln -sf 2.2.29 %{buildroot}/usr/libexec/awscliv2/v2/current
 
 %check
 %{buildroot}/usr/bin/aws --version
