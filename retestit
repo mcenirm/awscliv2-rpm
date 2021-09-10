@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-rpm --test -ivh ./RPMS/x86_64/awscliv2-2.2.36-1.el7.x86_64.rpm
-rpm -ivh ./RPMS/x86_64/awscliv2-2.2.36-1.el7.x86_64.rpm
+rpm --test -ivh ./RPMS/x86_64/awscliv2-2.2.37-1.el7.x86_64.rpm
+rpm -ivh ./RPMS/x86_64/awscliv2-2.2.37-1.el7.x86_64.rpm
 aws --version
