@@ -2,6 +2,12 @@ name: Release new RPM
 
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild rpm even if installer has not changed'
+        required: true
+        default: false
+        type: boolean
   schedule:
     - cron: "15 18 * * *"
 
@@ -50,7 +56,7 @@ jobs:
           git push
 
       - name: Build builder image
-        if: ${{ 'skipped' != steps.commit_changes.conclusion }}
+        if: ${{ github.event.inputs.force || 'skipped' != steps.commit_changes.conclusion }}
         id: build_image
         run: docker-compose build superbuilder
 
