@@ -7,10 +7,10 @@ on:
 
 jobs:
   all:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Configure git for commit
         run: |
@@ -39,7 +39,7 @@ jobs:
         run: |
           if ! git diff --cached --name-status --exit-code
           then
-            echo "::set-output name=installer_has_changed::yes"
+            echo "installer_has_changed=yes" >> $GITHUB_OUTPUT
           fi
 
       - name: Push updated installer details
@@ -66,10 +66,10 @@ jobs:
           echo ======================================
           declare -p {s,}rpm_{path,name}
           echo ======================================
-          echo "::set-output name=srpm_path::$srpm_path"
-          echo "::set-output name=srpm_name::$srpm_name"
-          echo "::set-output name=rpm_path::$rpm_path"
-          echo "::set-output name=rpm_name::$rpm_name"
+          echo "srpm_path=$srpm_path" >> $GITHUB_OUTPUT
+          echo "srpm_name=$srpm_name" >> $GITHUB_OUTPUT
+          echo "rpm_path=$rpm_path" >> $GITHUB_OUTPUT
+          echo "rpm_name=$rpm_name" >> $GITHUB_OUTPUT
 
       - name: Test RPM
         if: ${{ 'skipped' != steps.build_rpm.conclusion }}
@@ -78,7 +78,7 @@ jobs:
 
       - name: Save bad RPMs
         if: ${{ 'failure' == steps.test_rpm.conclusion }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: rpms
           path: "*RPMS**/*.rpm"
@@ -89,7 +89,7 @@ jobs:
         id: tag_for_release
         run: |
           tag=v${AWS_CLI_VERSION}-${AWSCLIV2_RPM_RELEASE}
-          echo "::set-output name=tag::$tag"
+          echo "tag=$tag" >> $GITHUB_OUTPUT
           git fetch -v --all --prune --prune-tags
           git checkout "$BASE_REF"
           git pull --ff-only
