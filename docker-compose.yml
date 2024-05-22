@@ -14,7 +14,7 @@ services:
       - .:/work
     working_dir: /work
   tester:
-    image: centos:7
+    image: rockylinux:8
     volumes:
       - .:/work
     working_dir: /work
