@@ -3,13 +3,14 @@
 ## Minimum
 
 - [X] build an installable RPM for AWS CLI v2
-- [X] support EL7 (RHEL, Centos)
+- [ ] ~~support~~ deprecate EL7 (RHEL, Centos)
+- [ ] support EL8 (RHEL, Rocky)
 - [X] bare minimum testing: Does it install?
 - [ ] test it properly, so we get notified when an upstream change breaks an assumption
 
 ## Stretch
 
-- [ ] support AMZN2, EL8, ___?
+- [ ] support AMZN2, ___?
 - [ ] conflict with RPM for AWS CLI v1 ("awscli")
 - [ ] track versions for official releases of AWS CLI v2
 - [X] publish RPM to releases on github project
