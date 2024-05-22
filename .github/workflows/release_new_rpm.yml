@@ -39,6 +39,7 @@ jobs:
           ./respecit | xargs --no-run-if-empty git add
           echo "AWS_CLI_VERSION=$(cat aws-cli.version)" >> $GITHUB_ENV
           echo "AWSCLIV2_RPM_RELEASE=$(cat awscliv2-rpm.release)" >> $GITHUB_ENV
+          echo "AWSCLIV2_RPM_DISTRO=$(cat awscliv2-rpm.distro)" >> $GITHUB_ENV
 
       - name: Check for changes to commit
         id: check_for_changes
@@ -94,7 +95,7 @@ jobs:
         if: ${{ 'skipped' != steps.test_rpm.conclusion }}
         id: tag_for_release
         run: |
-          tag=v${AWS_CLI_VERSION}-${AWSCLIV2_RPM_RELEASE}
+          tag=v${AWS_CLI_VERSION}-${AWSCLIV2_RPM_RELEASE}.${AWSCLIV2_RPM_DISTRO}
           echo "tag=$tag" >> $GITHUB_OUTPUT
           git fetch -v --all --prune --prune-tags
           git checkout "$BASE_REF"

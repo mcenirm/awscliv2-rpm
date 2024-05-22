@@ -29,6 +29,10 @@ respec ${name}-rpm.release <<EOF
 ${release}
 EOF
 
+respec ${name}-rpm.distro <<EOF
+${distro}
+EOF
+
 respec ${name}.spec <<EOF
 Summary: AWS CLI version 2
 License: Apache License 2.0
