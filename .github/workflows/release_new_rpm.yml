@@ -59,13 +59,13 @@ jobs:
       - name: Build builder image
         if: ${{ github.event.inputs.force || 'skipped' != steps.commit_changes.conclusion }}
         id: build_image
-        run: docker-compose build superbuilder
+        run: docker compose build superbuilder
 
       - name: Build RPM
         if: ${{ 'skipped' != steps.build_image.conclusion }}
         id: build_rpm
         run: |
-          docker-compose run superbuilder ./rebuildit
+          docker compose run superbuilder ./rebuildit
           srpm_path=$(find SRPMS -type f -name '*.rpm' | head -n1)
           srpm_name=$(basename "$srpm_path")
           rpm_path=$(find RPMS -type f -name '*.rpm' | head -n1)
@@ -81,7 +81,7 @@ jobs:
       - name: Test RPM
         if: ${{ 'skipped' != steps.build_rpm.conclusion }}
         id: test_rpm
-        run: docker-compose run tester ./retestit
+        run: docker compose run tester ./retestit
 
       - name: Save bad RPMs
         if: ${{ 'failure' == steps.test_rpm.conclusion }}
